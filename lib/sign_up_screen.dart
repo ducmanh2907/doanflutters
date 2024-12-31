@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+
 class SignUpScreen extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -8,19 +10,31 @@ class SignUpScreen extends StatelessWidget {
 
   Future<void> signUp(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String username = usernameController.text;
-    String password = passwordController.text;
-    String fullname = fullnameController.text;
+    String username = usernameController.text.trim();
+    String password = passwordController.text.trim();
+    String fullname = fullnameController.text.trim();
 
-    // Kiểm tra trùng username
-    if (prefs.getString('username') == username) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Username đã tồn tại')));
+    if (username.isEmpty || password.isEmpty || fullname.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vui lòng điền đầy đủ thông tin.')),
+      );
+      return;
+    }
+
+    // Check if username already exists
+    String? existingUsername = prefs.getString('username');
+    if (existingUsername == username) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Username đã tồn tại')),
+      );
     } else {
-      prefs.setString('username', username);
-      prefs.setString('password', password);
-      prefs.setString('fullname', fullname);
+      await prefs.setString('username', username);
+      await prefs.setString('password', password);
+      await prefs.setString('fullname', fullname);
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đăng ký thành công')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đăng ký thành công')),
+      );
       Navigator.pop(context);
     }
   }

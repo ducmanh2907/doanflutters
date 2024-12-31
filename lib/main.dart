@@ -1,5 +1,8 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'database/DatabaseHelper.dart';
 void main() {
   runApp(MyApp());
 }
@@ -28,11 +31,12 @@ class WelcomeScreen extends StatelessWidget {
         decoration: BoxDecoration(
           image: DecorationImage(
             image: NetworkImage(
-              'https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474102PIt/anh-nen-sieu-xe-moto-cho-dien-thoai_101641291.jpg',
+              'https://mcdn.coolmate.me/image/May2022/xe-do-1-3-1.jpg',
             ),
-            fit: BoxFit.cover, // Lấp đầy màn hình
+            fit: BoxFit.fill, // Ép ảnh lấp đầy
           ),
         ),
+
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -41,7 +45,7 @@ class WelcomeScreen extends StatelessWidget {
             Text(
               'Welcome Moto Joyal',
               style: TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
                 shadows: [
@@ -107,219 +111,224 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 }
+class MotoListScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Danh sách mô tô giả lập
+    final List<Map<String, dynamic>> motoList = [
+      {
+        'name': 'Moto Yamaha R15',
+        'price': 3500,
+        'imageUrl': 'https://example.com/yamaha_r15.jpg',
+      },
+      {
+        'name': 'Moto Kawasaki Ninja',
+        'price': 5500,
+        'imageUrl': 'https://example.com/kawasaki_ninja.jpg',
+      },
+      {
+        'name': 'Moto Ducati Panigale',
+        'price': 10000,
+        'imageUrl': 'https://example.com/ducati_panigale.jpg',
+      },
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Danh sách mô tô'),
+        backgroundColor: Colors.blue.shade700,
+      ),
+      body: ListView.builder(
+        itemCount: motoList.length,
+        itemBuilder: (context, index) {
+          final moto = motoList[index];
+          return Card(
+            margin: EdgeInsets.all(10),
+            child: ListTile(
+              leading: Image.network(
+                moto['imageUrl'],
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+              ),
+              title: Text(moto['name']),
+              subtitle: Text('Giá: \$${moto['price']}'),
+              trailing: ElevatedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${moto['name']} đã được thêm vào giỏ hàng!')),
+                  );
+                },
+                child: Text('Mua'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
 
 class LoginScreen extends StatelessWidget {
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  void login(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? usersJson = prefs.getString('users');
+    if (usersJson != null) {
+      List<dynamic> users = List<dynamic>.from(json.decode(usersJson));
+      String username = usernameController.text.trim();
+      String password = passwordController.text.trim();
+      final user = users.firstWhere(
+            (user) => user['username'] == username && user['password'] == password,
+        orElse: () => null,
+      );
+      if (user != null) {
+        prefs.setString('current_user', json.encode(user));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MotoListScreen()));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Sai thông tin đăng nhập")));
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Không tìm thấy người dùng")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+      appBar: AppBar(title: Text("Đăng nhập")),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(controller: usernameController, decoration: InputDecoration(labelText: "Username")),
+            TextField(controller: passwordController, decoration: InputDecoration(labelText: "Password"), obscureText: true),
+            SizedBox(height: 20),
+            ElevatedButton(onPressed: () => login(context), child: Text("Đăng nhập")),
+          ],
         ),
       ),
-      body: Stack(
-        children: [
-          // Hình nền LoginScreen
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(
-                  'https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474102PIt/anh-nen-sieu-xe-moto-cho-dien-thoai_101641291.jpg',
-                ),
-                fit: BoxFit.cover,
-              ),
+    );
+  }
+}
+
+class SignUpScreen extends StatelessWidget {
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+
+  Future<void> signUp(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String username = usernameController.text.trim();
+    String password = passwordController.text.trim();
+    String email = emailController.text.trim();
+
+    if (username.isEmpty || password.isEmpty || email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng điền đầy đủ thông tin.')),
+      );
+      return;
+    }
+
+    // Get the existing users and check if the username already exists
+    String? usersJson = prefs.getString('users');
+    List<dynamic> users = usersJson != null ? List<dynamic>.from(json.decode(usersJson)) : [];
+
+    if (users.any((user) => user['username'] == username)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Username đã tồn tại')),
+      );
+      return;
+    }
+
+    // Add the new user to the list
+    users.add({
+      'username': username,
+      'password': password,
+      'email': email, // Storing email instead of fullname
+    });
+
+    prefs.setString('users', json.encode(users));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Đăng ký thành công')),
+    );
+    Navigator.pop(context); // Close the sign-up screen
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Đăng ký')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(controller: usernameController, decoration: const InputDecoration(labelText: 'Username')),
+            TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Password'), obscureText: true),
+            TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')), // Changed label to Email
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => signUp(context),
+              child: const Text('Đăng ký'),
             ),
-          ),
-          // Nội dung giao diện
-          Container(
-            color: Colors.black.withOpacity(0.5), // Lớp phủ mờ
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'LOGIN',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 28,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 40),
-                  TextField(
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.person, color: Colors.white),
-                      hintText: 'Username',
-                      filled: true,
-                      fillColor: Colors.white24,
-                      hintStyle: TextStyle(color: Colors.white70),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.lock, color: Colors.white),
-                      hintText: 'Password',
-                      filled: true,
-                      fillColor: Colors.white24,
-                      hintStyle: TextStyle(color: Colors.white70),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 40),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Xử lý đăng nhập
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                    ),
-                    child: Text(
-                      'LOGIN',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> _pages = [
+      NotesScreen(),
+      ProfileScreen(),
+    ];
+
+    return Scaffold(
+      appBar: AppBar(title: Text("Màn hình chính")),
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: "Notes"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
     );
   }
 }
 
-
-class SignUpScreen extends StatelessWidget {
+class NotesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-      body: Stack(
-        children: [
-          // Hình nền SignUpScreen
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(
-                  'https://chiemtaimobile.vn/images/companies/1/%E1%BA%A2nh%20Blog/hinh-nen-xe-pkl-cho-dien-thoai/xe-pkl-cho-dien-thoai-1.jpg?1671504191902',
-                ),                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          // Nội dung giao diện
-          Container(
-            color: Colors.black.withOpacity(0.5), // Lớp phủ mờ
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'SIGN UP',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 28,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 40),
-                  TextField(
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.person, color: Colors.white),
-                      hintText: 'Username',
-                      filled: true,
-                      fillColor: Colors.white24,
-                      hintStyle: TextStyle(color: Colors.white70),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.email, color: Colors.white),
-                      hintText: 'Email',
-                      filled: true,
-                      fillColor: Colors.white24,
-                      hintStyle: TextStyle(color: Colors.white70),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.lock, color: Colors.white),
-                      hintText: 'Password',
-                      filled: true,
-                      fillColor: Colors.white24,
-                      hintStyle: TextStyle(color: Colors.white70),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 40),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Xử lý đăng ký
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade700,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                    ),
-                    child: Text(
-                      'SIGN UP',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return Center(child: Text("Danh sách ghi chú"));
+  }
+}
+
+class ProfileScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text("Thông tin cá nhân"));
   }
 }

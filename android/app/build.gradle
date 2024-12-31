@@ -7,10 +7,16 @@ plugins {
 
 android {
     compileSdkVersion 34
+
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 34
+        // Cấu hình unique Application ID của bạn.
+        applicationId = "com.example.hellowould" // Cập nhật tên gói của bạn
+        minSdk = 21 // Chỉ định minSdkVersion
+        targetSdk = 34 // Chỉ định targetSdkVersion
+        versionCode = flutter.versionCode // Lấy versionCode từ Flutter
+        versionName = flutter.versionName // Lấy versionName từ Flutter
     }
+
     buildToolsVersion "34.0.0"
 
     compileOptions {
@@ -22,29 +28,73 @@ android {
         jvmTarget = JavaVersion.VERSION_1_8
     }
 
-    defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.hellowould"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-    }
-
-    // Add the namespace here:
-    namespace 'com.example.hellowould'  // <-- Add this line
+    // Thêm namespace cho ứng dụng
+    namespace 'com.example.hellowould'  // Thêm namespace của bạn tại đây.
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Cấu hình ký ứng dụng khi release
             signingConfig = signingConfigs.debug
         }
     }
 }
 
 flutter {
-    source = "../.."
+    source = "../.." // Đường dẫn đến nguồn Flutter SDK
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    compileSdkVersion 34
+
+    defaultConfig {
+        // Cấu hình unique Application ID của bạn.
+        applicationId = "com.example.hellowould" // Cập nhật tên gói của bạn
+        minSdk = 21 // Chỉ định minSdkVersion
+        targetSdk = 34 // Chỉ định targetSdkVersion
+        versionCode = flutter.versionCode // Lấy versionCode từ Flutter
+        versionName = flutter.versionName // Lấy versionName từ Flutter
+    }
+
+    buildToolsVersion "34.0.0"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    // Thêm namespace cho ứng dụng
+    namespace 'com.example.hellowould'  // Thêm namespace của bạn tại đây.
+
+    buildTypes {
+        release {
+            // Cấu hình ký ứng dụng khi release
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source = "../.." // Đường dẫn đến nguồn Flutter SDK
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
