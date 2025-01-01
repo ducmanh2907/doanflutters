@@ -1,20 +1,27 @@
-import 'package:banxe/Screens/home_screen.dart';
-import 'package:banxe/models/MotoListScreen.dart';
-import 'package:banxe/models/login_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:banxe/Screens/MotoListScreen.dart';
+import 'package:banxe/Screens/login_screen.dart';
+import 'package:banxe/Screens/signup_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'Services/firebase_options.dart'; // Đảm bảo đúng đường dẫn tới file firebase_options.dart
+import 'package:flutter/material.dart';
+import 'package:firebase_core_web/firebase_core_web.dart';
 
 void main() async {
-  // Đảm bảo Flutter framework được khởi tạo trước khi chạy Firebase
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Khởi tạo Firebase với cấu hình từ firebase_options.dart
+  // Cung cấp FirebaseOptions cho web
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, // Khởi tạo Firebase bằng cấu hình này
+    options: FirebaseOptions(
+        apiKey: "AIzaSyBOrM6TqoxD8PNWb8NFH7Fa-Sn_jIXnPCY",
+        authDomain: "doanflutter-49238.firebaseapp.com",
+        databaseURL: "https://doanflutter-49238-default-rtdb.firebaseio.com",
+        projectId: "doanflutter-49238",
+        storageBucket: "doanflutter-49238.firebasestorage.app",
+        messagingSenderId: "1058935328786",
+        appId: "1:1058935328786:web:9de30c14c516b5d85f08cb",
+        measurementId: "G-L7NS025W97"
+    ),
   );
 
-  // Chạy ứng dụng
   runApp(MyApp());
 }
 
@@ -22,12 +29,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Ẩn banner debug
-      title: 'Flutter Firebase App',
+      title: 'Flutter Firebase Auth',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MotoListScreen(), // Màn hình chính của ứng dụng
+      initialRoute: '/login', // Màn hình đầu tiên là màn hình đăng nhập
+      routes: {
+        '/login': (context) => SignUpScreen(),
+        '/signup': (context) => SignInScreen(),
+        '/home': (context) => MotoListScreen(),
+      },
     );
   }
 }
