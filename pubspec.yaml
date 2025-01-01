@@ -30,11 +30,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^2.2.0 # Phiên bản mới nhất
-  sqflite: ^2.2.0
-  path: ^1.8.3
-  firebase_core: ^2.15.0
-  cloud_firestore: ^4.17.5
+  firebase_core: ^3.8.1
+  firebase_auth: ^5.3.4
+  firebase_auth_web: ^5.8.13  # Kiểm tra với phiên bản này
+
+    # Thêm firebase_auth vào đây
+    # Các gói khác bạn đang sử dụng...
+
 
 
   # The following adds the Cupertino Icons font to your application.
